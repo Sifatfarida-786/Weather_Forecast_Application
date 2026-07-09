@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Day Weather Forecast</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #a29bfe);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #2d3436;
+        }
+        .search-container {
+            margin-bottom: 30px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #dfe6e9;
+            border-radius: 20px;
+            outline: none;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #5543ca;
+        }
+        .forecast-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 150px;
+            backdrop-filter: blur(5px);
+        }
+        .date { font-weight: bold; margin-bottom: 10px; color: #6c5ce7; }
+        .temp { font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .humidity { color: #636e72; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <h1>5-Day Weather Forecast</h1>
+    
+    <div class="search-container">
+        <input type="text" id="cityInput" placeholder="Enter city name..." value="Delhi">
+        <button onclick="getWeather()">Search</button>
+    </div>
+
+    <div id="forecast" class="forecast-container"></div>
+
+    <script>
+        function getWeather() {
+            const city = document.getElementById('cityInput').value;
+            const forecastDiv = document.getElementById('forecast');
+            forecastDiv.innerHTML = "Loading...";
+
+            // Humare Spring Boot backend API ko hit kar rahe hain
+            fetch(`/weather?city=${city}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('City not found');
+                    return response.json();
+                })
+                .then(data => {
+                    forecastDiv.innerHTML = ""; // Clear loader
+                    
+                    if(data.length === 0) {
+                        forecastDiv.innerHTML = "<p>No data found for this time block.</p>";
+                        return;
+                    }
+
+                    // Data lekar sundar HTML cards bana rahe hain
+                    data.forEach(day => {
+                        // Date formats ko thoda saaf dikhane ke liye
+                        const dateOnly = day.dt_txt.split(" ")[0]; 
+                        
+                        const card = `
+                            <div class="weather-card">
+                                <div class="date">${dateOnly}</div>
+                                <div class="temp">${day.main.temp}°C</div>
+                                <div class="humidity">💧 Humidity: ${day.main.humidity}%</div>
+                            </div>
+                        `;
+                        forecastDiv.innerHTML += card;
+                    });
+                })
+                .catch(error => {
+                    forecastDiv.innerHTML = `<p style="color:red;">Error: ${error.message}. Please check city name.</p>`;
+                });
+        }
+
+        // Pehli baar page load hone par automatic Delhi ka data dikhane ke liye
+        window.onload = getWeather;
+    </script>
+</body>
+</html>
